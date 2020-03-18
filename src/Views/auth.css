@@ -1,0 +1,5 @@
+.auth_form{
+    border: 4px double black; /* Параметры границы */
+    /*background: lightslategray; !* Цвет фона *!*/
+    padding: 10px; /* Поля вокруг текста */
+}
