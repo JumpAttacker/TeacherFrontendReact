@@ -1,44 +1,71 @@
 import React, {Component} from "react";
-import {Button, Checkbox, Form, Input} from "antd";
+import {Button, Checkbox, Form, Input, message} from "antd";
 import {LockOutlined, UserOutlined} from '@ant-design/icons';
 import "./login_component.css"
-import HistoryProp from "../Views/HistoryProp";
+import LoginProp from "../Views/LoginProp";
 import {Link} from "react-router-dom";
+import {connect} from "react-redux";
+import {updateSession} from "../store/system/actions";
+import {thunkLogin, thunkLogout, thunkSendMessage} from "../thunks";
+import {AppState} from "../store";
+import {SystemState} from "../store/system/types";
 
 interface ILoginProp {
-    history: HistoryProp
-    onRegistration: any
+    history: LoginProp
+    onRegistration: any,
+    thunkLogin: any,
+    thunkLogout: any,
+    system: SystemState;
 }
-
-// const {  UserOutlined, LockOutlined  } = icons;
 
 interface IState {
     login: string,
     password: string
 }
 
-const onFinish = (values: any) => {
-    console.log('Success:', values);
+const key = 'loadingState';
+const openMessage = (system: SystemState) => {
+    if (system.isLoading)
+        message.loading({content: 'Загрузка...', key});
+    else if (system.loggedIn)
+        message.success({content: system.message, key, duration: 5});
+    else
+        message.error({content: system.message, key, duration: 5});
 };
 
 class Login extends Component<ILoginProp, IState> {
-    state = {
-        login: '',
-        password: ''
-    };
     clickAction = () => {
         console.log(this.props);
         this.props.onRegistration();
     };
 
+    onFinish = (values: any) => {
+        console.log('Success:', values);
+        let {username, password} = values;
+        this.props.thunkLogin(username, password);
+    };
+
+    componentDidMount(): void {
+        console.log(`props: `, this.props)
+    }
+
+    componentDidUpdate(prevProps: Readonly<ILoginProp>, prevState: Readonly<IState>, snapshot?: any): void {
+        if (!prevProps.system.loggedIn)
+            openMessage(this.props.system);
+        console.log('system:', this.props.system)
+    }
+
     render() {
         return (
             <>
-                <Form
+                {this.props.system.loggedIn && this.props.system.userName &&
+                <h3>{this.props.system.userName}, добро пожаловать!</h3>}
+
+                {!this.props.system.loggedIn && <Form
                     name="normal_login"
                     className="login-form"
                     initialValues={{remember: true}}
-                    onFinish={onFinish}
+                    onFinish={this.onFinish}
                 >
                     <Form.Item
                         name="username"
@@ -50,7 +77,7 @@ class Login extends Component<ILoginProp, IState> {
                         name="password"
                         rules={[{required: true, message: 'Please input your Password!'}]}
                     >
-                        <Input
+                        <Input.Password
                             prefix={<LockOutlined className="site-form-item-icon"/>}
                             type="password"
                             placeholder="Пароль"
@@ -70,10 +97,25 @@ class Login extends Component<ILoginProp, IState> {
                         <>или</>
                         <Button type="link" onClick={this.clickAction.bind(this)}>зарегистрироваться сейчас!</Button>
                     </Form.Item>
-                </Form>
+                </Form>}
+
+                {this.props.system.loggedIn &&
+                <div style={{textAlign: "center"}}>
+                    <Button danger type='primary' onClick={this.props.thunkLogout}>
+                        Выйти из аккаунта
+                    </Button>
+                </div>
+                }
             </>
         );
     }
 }
 
-export default Login;
+const mapStateToProps = (state: AppState) => ({
+    system: state.system,
+});
+
+export default connect(
+    mapStateToProps,
+    {updateSession, thunkLogin, thunkSendMessage, thunkLogout}
+)(Login);

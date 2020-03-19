@@ -22,12 +22,12 @@ export default class NavigationComponent extends Component {
                 <Menu
                     theme="dark"
                     mode="horizontal"
-                    defaultSelectedKeys={['1']}
                     style={{lineHeight: '64px'}}
+                    defaultSelectedKeys={['home']}
                     onClick={this.onClick}
                 >
-                    <Menu.Item key="1"><Link to="/">Home</Link></Menu.Item>
-                    <Menu.Item key="2"><Link to="/auth">Auth</Link></Menu.Item>
+                    <Menu.Item key="home"><Link to="/">Home</Link></Menu.Item>
+                    <Menu.Item key="auth"><Link to="/auth">Auth</Link></Menu.Item>
                 </Menu>
             </>
         )
